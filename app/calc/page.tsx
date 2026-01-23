@@ -2,181 +2,225 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// --- 設定エリア ---
+// --- 設定 ---
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export default function Home() {
-  // --- データ管理 ---
-  const [items, setItems] = useState<any[]>([]); // DBから取ってきた装備全リスト
+// 装備の型定義
+type Equipment = {
+  id: number;
+  name: string;
+  category: string; // カテゴリ (シューズ, ミサンガ, ペンダント, スペシャル)
+  kick: number;
+  control: number;
+  technique: number;
+  agility: number;     // スピード/瞬発力
+  intelligence: number; // 賢さ
+};
 
-  // --- 4つの装備枠（選んだ装備のIDが入る） ---
+export default function Home() {
+  const [items, setItems] = useState<Equipment[]>([]);
+
+  // --- 選択された装備ID ---
   const [shoesId, setShoesId] = useState<string>("");
   const [misangaId, setMisangaId] = useState<string>("");
   const [pendantId, setPendantId] = useState<string>("");
   const [specialId, setSpecialId] = useState<string>("");
 
-  // --- ステータス入力（わかりやすい名前に変更） ---
-  const [baseStat, setBaseStat] = useState<number>(0);  // レベル99実数値
-  const [board, setBoard] = useState<number>(0);        // 特訓ボード
-  const [beans, setBeans] = useState<number>(0);        // ビーンズ
+  // --- キャラクターのステータス入力 ---
+  const [stats, setStats] = useState({
+    kick: 0,
+    control: 0,
+    technique: 0,
+    agility: 0,
+    intelligence: 0,
+  });
 
-  // --- 補正値 ---
-  const [focusBuff, setFocusBuff] = useState<number>(0);   // フォーカスバフ(%)
-  const [justiceBuff, setJusticeBuff] = useState<number>(0); // 正義補正(%)
+  // --- バフ ---
+  const [focusBuff, setFocusBuff] = useState<number>(0);
+  const [justiceBuff, setJusticeBuff] = useState<number>(0);
 
-  // 1. 起動時にSupabaseからデータを取ってくる
+  // 1. データ取得
   useEffect(() => {
     const fetchData = async () => {
-      // ★テーブル名が 'equipment' で正しいか確認してください
+      // ★ category列や各ステータス列がないとエラーになるので注意！
       const { data, error } = await supabase.from("equipment").select("*");
-      if (data) {
-        setItems(data);
-      }
+      if (data) setItems(data as any);
     };
     fetchData();
   }, []);
 
-  // 2. IDから装備の数値（フォーカス）を取り出す関数
-  const getEquipValue = (id: string) => {
-    if (!id) return 0;
-    const foundItem = items.find((item) => item.id == id);
-    // ★重要: DBの列名が 'focus' じゃない場合（powerなど）はここを書き換えてください
-    return foundItem ? (foundItem.focus || 0) : 0;
+  // 2. 指定したカテゴリの装備だけを抽出する関数
+  const getItemsByCategory = (catName: string) => {
+    // データがない、またはカテゴリが一致するものだけ返す
+    // ※DBに 'シューズ' と登録されている想定。英語なら 'Shoes' に変えてね
+    return items.filter((item) => item.category === catName || item.category === "全種");
   };
 
-  // 3. 計算ロジック
-  const calculateTotal = () => {
-    // 装備4つの合計値を出す
-    const equipTotal = getEquipValue(shoesId) + getEquipValue(misangaId) + getEquipValue(pendantId) + getEquipValue(specialId);
+  // 3. IDから装備データを取得する関数
+  const getEquip = (id: string) => items.find((i) => i.id.toString() === id);
 
-    // キャラ本体の合計 (素 + ボード + ビーンズ)
-    const charTotal = (baseStat || 0) + (board || 0) + (beans || 0);
+  // 4. 合計ステータスを計算する関数 (キャラ + 装備4種)
+  const getTotalStat = (statName: keyof Equipment) => {
+    const s = getEquip(shoesId)?.[statName] || 0;
+    const m = getEquip(misangaId)?.[statName] || 0;
+    const p = getEquip(pendantId)?.[statName] || 0;
+    const sp = getEquip(specialId)?.[statName] || 0;
+    // @ts-ignore
+    const charStat = stats[statName] || 0;
 
-    // 基礎合計
-    const baseTotal = charTotal + equipTotal;
+    // @ts-ignore
+    return charStat + s + m + p + sp;
+  };
 
-    // 倍率 = (1 + バフ%) * (1 + 正義%)
+  // 5. フォーカス計算 (AT / DF)
+  const calculateFocus = () => {
+    // 全ステータスの合計値を算出
+    const totalKick = getTotalStat("kick");
+    const totalControl = getTotalStat("control");
+    const totalTechnique = getTotalStat("technique");
+    const totalAgility = getTotalStat("agility");
+    const totalIntelligence = getTotalStat("intelligence");
+
+    // 倍率
     const multiplier = (1 + focusBuff / 100) * (1 + justiceBuff / 100);
 
-    // 結果（切り捨て）
-    return Math.floor(baseTotal * multiplier);
+    // ★ 計算式：フォーカスAT = 1/2キック + コントロール + テクニック
+    const rawAt = (totalKick / 2) + totalControl + totalTechnique;
+    const focusAt = Math.floor(rawAt * multiplier);
+
+    // ★ 計算式：フォーカスDF = 1/2アジリティ + インテリジェンス + テクニック
+    // ※アジリティ(agility)をスピードとして使います
+    const rawDf = (totalAgility / 2) + totalIntelligence + totalTechnique;
+    const focusDf = Math.floor(rawDf * multiplier);
+
+    return { focusAt, focusDf };
   };
+
+  const { focusAt, focusDf } = calculateFocus();
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>⚡ イナズマ計算機 ⚡</h1>
+      <h1 style={styles.title}>⚡ イナズマ計算機 Pro ⚡</h1>
 
-      {/* ▼ 1. キャラクター入力 ▼ */}
-      <div style={styles.card}>
-        <h3 style={styles.cardHeader}>👤 キャラクター・ステータス</h3>
-        <div style={styles.inputRow}>
-          <div style={styles.inputGroup}>
-            <label>レベル99実数値</label>
-            <input type="number" value={baseStat} onChange={(e) => setBaseStat(Number(e.target.value))} style={styles.input} placeholder="例: 350" />
+      <div style={styles.mainGrid}>
+        {/* 左カラム：入力エリア */}
+        <div style={styles.column}>
+          
+          {/* ▼ キャラステータス入力 ▼ */}
+          <div style={styles.card}>
+            <h3 style={styles.h3}>👤 キャラのステータス</h3>
+            <div style={styles.statGrid}>
+              <label>キック <input type="number" value={stats.kick} onChange={(e)=>setStats({...stats, kick: +e.target.value})} style={styles.input} /></label>
+              <label>コント <input type="number" value={stats.control} onChange={(e)=>setStats({...stats, control: +e.target.value})} style={styles.input} /></label>
+              <label>テクニ <input type="number" value={stats.technique} onChange={(e)=>setStats({...stats, technique: +e.target.value})} style={styles.input} /></label>
+              <label>スピ (AGI) <input type="number" value={stats.agility} onChange={(e)=>setStats({...stats, agility: +e.target.value})} style={styles.input} /></label>
+              <label>賢さ (INT) <input type="number" value={stats.intelligence} onChange={(e)=>setStats({...stats, intelligence: +e.target.value})} style={styles.input} /></label>
+            </div>
           </div>
-          <div style={styles.inputGroup}>
-            <label>特訓ボード</label>
-            <input type="number" value={board} onChange={(e) => setBoard(Number(e.target.value))} style={styles.input} placeholder="例: 20" />
+
+          {/* ▼ 装備選択（カテゴリ別） ▼ */}
+          <div style={styles.card}>
+            <h3 style={styles.h3}>🛡️ 装備選択</h3>
+            
+            <div style={styles.selectRow}>
+              <label>👟 シューズ</label>
+              <select style={styles.select} value={shoesId} onChange={(e) => setShoesId(e.target.value)}>
+                <option value="">なし</option>
+                {/* DBのcategoryが「シューズ」のアイテムだけ表示 */}
+                {getItemsByCategory("シューズ").map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.selectRow}>
+              <label>📿 ミサンガ</label>
+              <select style={styles.select} value={misangaId} onChange={(e) => setMisangaId(e.target.value)}>
+                <option value="">なし</option>
+                {getItemsByCategory("ミサンガ").map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.selectRow}>
+              <label>🏅 ペンダント</label>
+              <select style={styles.select} value={pendantId} onChange={(e) => setPendantId(e.target.value)}>
+                <option value="">なし</option>
+                {getItemsByCategory("ペンダント").map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.selectRow}>
+              <label>🧤 スペシャル</label>
+              <select style={styles.select} value={specialId} onChange={(e) => setSpecialId(e.target.value)}>
+                <option value="">なし</option>
+                {/* ユーザー様の言う「スペシャル」カテゴリでフィルタ */}
+                {getItemsByCategory("スペシャル").map((item) => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div style={styles.inputGroup}>
-            <label>ビーンズ</label>
-            <input type="number" value={beans} onChange={(e) => setBeans(Number(e.target.value))} style={styles.input} placeholder="例: 50" />
+
+          {/* ▼ バフ入力 ▼ */}
+          <div style={{...styles.card, background: "#fffbf0"}}>
+            <h3 style={styles.h3}>⚙️ 補正</h3>
+            <div style={{display:'flex', gap:'10px'}}>
+              <label>Fバフ% <input type="number" value={focusBuff} onChange={(e)=>setFocusBuff(+e.target.value)} style={{...styles.input, width:'60px'}} /></label>
+              <label>正義% <input type="number" value={justiceBuff} onChange={(e)=>setJusticeBuff(+e.target.value)} style={{...styles.input, width:'60px'}} /></label>
+            </div>
+          </div>
+
+        </div>
+
+        {/* 右カラム：結果表示エリア */}
+        <div style={styles.column}>
+          <div style={styles.resultContainer}>
+            
+            {/* AT 結果 */}
+            <div style={{...styles.resultBox, borderColor: "#ff4d4d", color: "#ff4d4d"}}>
+              <div style={styles.resultLabel}>⚔️ フォーカス AT</div>
+              <div style={styles.resultValue}>{focusAt}</div>
+              <div style={styles.resultSub}>1/2キック + コント + テクニ</div>
+            </div>
+
+            {/* DF 結果 */}
+            <div style={{...styles.resultBox, borderColor: "#0070f3", color: "#0070f3"}}>
+              <div style={styles.resultLabel}>🛡️ フォーカス DF</div>
+              <div style={styles.resultValue}>{focusDf}</div>
+              <div style={styles.resultSub}>1/2スピ + 賢さ + テクニ</div>
+            </div>
+
           </div>
         </div>
       </div>
-
-      {/* ▼ 2. 装備選択（4枠） ▼ */}
-      <div style={styles.card}>
-        <h3 style={styles.cardHeader}>🛡️ 装備選択 (合計: {getEquipValue(shoesId) + getEquipValue(misangaId) + getEquipValue(pendantId) + getEquipValue(specialId)})</h3>
-        
-        {/* シューズ */}
-        <div style={styles.selectGroup}>
-          <label>👟 シューズ</label>
-          <select style={styles.select} value={shoesId} onChange={(e) => setShoesId(e.target.value)}>
-            <option value="">-- 未選択 --</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>{item.name} (値: {item.focus})</option>
-            ))}
-          </select>
-        </div>
-
-        {/* ミサンガ/ブレスレット */}
-        <div style={styles.selectGroup}>
-          <label>📿 ミサンガ/ブレスレット</label>
-          <select style={styles.select} value={misangaId} onChange={(e) => setMisangaId(e.target.value)}>
-            <option value="">-- 未選択 --</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>{item.name} (値: {item.focus})</option>
-            ))}
-          </select>
-        </div>
-
-        {/* ペンダント/ネックレス */}
-        <div style={styles.selectGroup}>
-          <label>🏅 ペンダント/ネックレス</label>
-          <select style={styles.select} value={pendantId} onChange={(e) => setPendantId(e.target.value)}>
-            <option value="">-- 未選択 --</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>{item.name} (値: {item.focus})</option>
-            ))}
-          </select>
-        </div>
-
-        {/* スペシャル/手袋 */}
-        <div style={styles.selectGroup}>
-          <label>🧤 スペシャル/手袋</label>
-          <select style={styles.select} value={specialId} onChange={(e) => setSpecialId(e.target.value)}>
-            <option value="">-- 未選択 --</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>{item.name} (値: {item.focus})</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* ▼ 3. 補正オプション ▼ */}
-      <div style={{...styles.card, backgroundColor: "#fffbf0", borderColor: "#ffeeba"}}>
-        <h3 style={styles.cardHeader}>⚙️ 補正オプション</h3>
-        <div style={styles.inputRow}>
-          <div style={styles.inputGroup}>
-            <label>フォーカスバフ (%)</label>
-            <input type="number" value={focusBuff} onChange={(e) => setFocusBuff(Number(e.target.value))} style={styles.input} />
-          </div>
-          <div style={styles.inputGroup}>
-            <label>正義の鉄槌/補正 (%)</label>
-            <input type="number" value={justiceBuff} onChange={(e) => setJusticeBuff(Number(e.target.value))} style={styles.input} />
-          </div>
-        </div>
-      </div>
-
-      {/* ▼ 4. 結果表示 ▼ */}
-      <div style={styles.resultCard}>
-        <h2 style={{margin: "0 0 10px 0", fontSize: "18px", color: "#666"}}>最終フォーカス値</h2>
-        <div style={styles.bigNumber}>
-          {calculateTotal()}
-        </div>
-        <div style={{fontSize: "14px", color: "#888"}}>
-            ( キャラ:{(baseStat||0)+(board||0)+(beans||0)} + 装備:{getEquipValue(shoesId) + getEquipValue(misangaId) + getEquipValue(pendantId) + getEquipValue(specialId)} ) × 倍率
-        </div>
-      </div>
-
     </div>
   );
 }
 
-// --- デザイン設定 ---
+// --- コンパクトCSS ---
 const styles = {
-  container: { maxWidth: "600px", margin: "0 auto", padding: "20px", fontFamily: "sans-serif", color: "#333" },
-  title: { textAlign: "center" as "center", color: "#ff8c00", marginBottom: "20px" },
-  card: { padding: "20px", marginBottom: "20px", border: "1px solid #ddd", borderRadius: "10px", backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" },
-  cardHeader: { margin: "0 0 15px 0", fontSize: "16px", borderBottom: "2px solid #eee", paddingBottom: "10px" },
-  inputRow: { display: "flex", gap: "15px", flexWrap: "wrap" as "wrap" },
-  inputGroup: { display: "flex", flexDirection: "column" as "column", flex: "1", minWidth: "100px" },
-  input: { padding: "8px", borderRadius: "5px", border: "1px solid #ccc", fontSize: "16px", marginTop: "5px" },
-  selectGroup: { marginBottom: "15px" },
-  select: { width: "100%", padding: "10px", fontSize: "15px", borderRadius: "5px", border: "1px solid #ccc", marginTop: "5px" },
-  resultCard: { padding: "30px", backgroundColor: "#333", color: "#fff", borderRadius: "15px", textAlign: "center" as "center", boxShadow: "0 4px 10px rgba(0,0,0,0.2)" },
-  bigNumber: { fontSize: "48px", fontWeight: "bold", color: "#ffbd00", margin: "10px 0" }
+  container: { maxWidth: "900px", margin: "0 auto", padding: "10px", fontFamily: "sans-serif", color: "#333" },
+  title: { textAlign: "center" as "center", color: "#ff8c00", fontSize: "20px", margin: "10px 0" },
+  mainGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }, // 左右2列
+  column: { display: "flex", flexDirection: "column" as "column", gap: "10px" },
+  card: { padding: "10px", border: "1px solid #ddd", borderRadius: "6px", backgroundColor: "#fff" },
+  h3: { margin: "0 0 8px 0", fontSize: "14px", borderBottom: "1px solid #eee" },
+  // グリッド入力
+  statGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "5px", fontSize: "12px" },
+  input: { width: "100%", padding: "4px", border: "1px solid #ccc", borderRadius: "4px", textAlign: "right" as "right" },
+  // セレクト
+  selectRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px", fontSize: "13px" },
+  select: { width: "70%", padding: "4px", border: "1px solid #ccc", borderRadius: "4px" },
+  // 結果エリア
+  resultContainer: { display: "flex", flexDirection: "column" as "column", gap: "10px", height: "100%" },
+  resultBox: { flex: 1, border: "2px solid #ccc", borderRadius: "8px", display: "flex", flexDirection: "column" as "column", alignItems: "center", justifyContent: "center", backgroundColor: "#fff" },
+  resultLabel: { fontSize: "16px", fontWeight: "bold" },
+  resultValue: { fontSize: "40px", fontWeight: "bold", margin: "5px 0" },
+  resultSub: { fontSize: "10px", color: "#888" },
 };
