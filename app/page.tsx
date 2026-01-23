@@ -16,8 +16,11 @@ export default function Home() {
       <div style={styles.section}>
         <h2 style={styles.h2}>お知らせ</h2>
         <ul style={styles.ul}>
+          {/* ▼▼▼ ここを追加しました ▼▼▼ */}
+          <li>2026-01-23: ツール名を<strong>「フォーカス計算」</strong>に変更し、バフ補正機能とステータス詳細入力(Lv99/ボード/ビーンズ)を追加しました。🆕</li>
+          
           <li>2026-01-22: サイトを開設しました。</li>
-          <li>2026-01-22: <Link href="/calc" style={styles.link}>装備シミュレーター</Link>を公開しました。</li>
+          <li>2026-01-22: <Link href="/focus" style={styles.link}>装備シミュレーター</Link>を公開しました。</li>
         </ul>
       </div>
 
@@ -26,10 +29,14 @@ export default function Home() {
         <h2 style={styles.h2}>ツール一覧</h2>
         <div style={styles.grid}>
           
-          <Link href="/calc" style={styles.card}>
-            <div style={styles.cardHeader}>装備シミュレーター</div>
+          {/* ▼▼▼ リンク先と名前を変更しました ▼▼▼ */}
+          <Link href="/focus" style={styles.card}>
+            <div style={styles.cardHeader}>⚡ フォーカス計算</div>
             <div style={styles.cardBody}>
-              <p>キックやテクニックなどのステータス計算ツール。<br/>フォーカスAT/DFの算出も可能。</p>
+              <p>
+                キャラステータスと装備を組み合わせて、最終的なAT/DF値を算出するツール。<br/>
+                <span style={{color:"#d35400", fontWeight:"bold"}}>※バフ補正・詳細入力に対応</span>
+              </p>
             </div>
           </Link>
 
