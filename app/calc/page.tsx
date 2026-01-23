@@ -1,248 +1,226 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+"use client";
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-// Supabase設定
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// --- 設定エリア ---
 
-// データ型定義
+// Supabaseの接続設定
+// (.env.localに設定した鍵を読み込みます)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// データの型定義（Supabaseのテーブルに合わせて調整してください）
 type Equipment = {
   id: number;
-  name: string;
-  type: string;
-  kick: number;
-  technique: number;
-  control: number;
-  pressure: number;
-  physical: number;
-  intelligence: number;
-  agility: number;
+  name: string;      // 装備/キャラ名
+  focus: number;     // 基礎フォーカス値
+  category?: string; // カテゴリ（任意）
 };
 
-// ステータスの種類
-type StatType = 'kick' | 'control' | 'technique' | 'agility' | 'intelligence';
-
 export default function Home() {
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  // --- 変数（State）の準備 ---
+  const [items, setItems] = useState<Equipment[]>([]); // データ一覧
+  const [loading, setLoading] = useState(true);        // 読み込み中かどうか
   
-  // 装備選択用
-  const [selectedShoe, setSelectedShoe] = useState<string>('');
-  const [selectedMisanga, setSelectedMisanga] = useState<string>('');
-  const [selectedPendant, setSelectedPendant] = useState<string>('');
-  const [selectedSpecial, setSelectedSpecial] = useState<string>('');
+  // ★追加機能：計算用バフ★
+  const [focusBuff, setFocusBuff] = useState<number>(0);   // フォーカスバフ(%)
+  const [justiceBuff, setJusticeBuff] = useState<number>(0); // 正義補正(%)
 
-  // 手入力ステータス（素・ボード・ビーンズ）
-  const [baseStats, setBaseStats] = useState({ kick: 0, control: 0, technique: 0, agility: 0, intelligence: 0 });
-  const [boardStats, setBoardStats] = useState({ kick: 0, control: 0, technique: 0, agility: 0, intelligence: 0 });
-  const [beanStats, setBeanStats] = useState({ kick: 0, control: 0, technique: 0, agility: 0, intelligence: 0 });
-
+  // --- 1. 起動時にSupabaseからデータを取得 ---
   useEffect(() => {
     const fetchData = async () => {
-      const { data } = await supabase.from('equipment').select('*');
-      if (data) setEquipments(data);
+      try {
+        // 'equipments' というテーブルから全データを取得
+        // ※もしテーブル名が違う場合は 'equipments' を書き換えてください
+        const { data, error } = await supabase.from("equipments").select("*");
+
+        if (error) throw error;
+        if (data) setItems(data);
+      } catch (error) {
+        console.error("データ取得エラー:", error);
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchData();
   }, []);
 
-  // 装備ごとのリスト
-  const shoesList = equipments.filter(e => e.type === 'シューズ');
-  const misangaList = equipments.filter(e => e.type === 'ミサンガ' || e.type === 'バングル');
-  const pendantList = equipments.filter(e => e.type === 'ペンダント');
-  const specialList = equipments.filter(e => e.type === 'スペシャル');
-
-  // 装備の合計値を計算
-  const getEquipTotal = () => {
-    const items = [
-      equipments.find(e => e.id.toString() === selectedShoe),
-      equipments.find(e => e.id.toString() === selectedMisanga),
-      equipments.find(e => e.id.toString() === selectedPendant),
-      equipments.find(e => e.id.toString() === selectedSpecial),
-    ].filter(item => item !== undefined) as Equipment[];
-
-    const total = { kick: 0, control: 0, technique: 0, agility: 0, intelligence: 0 };
-    items.forEach(item => {
-      total.kick += item.kick || 0;
-      total.control += item.control || 0;
-      total.technique += item.technique || 0;
-      total.agility += item.agility || 0;
-      total.intelligence += item.intelligence || 0;
-    });
-    return total;
-  };
-
-  const equipStats = getEquipTotal();
-
-  // 全ての合計値（素＋ボード＋ビーンズ＋装備）
-  const finalStats = {
-    kick: baseStats.kick + boardStats.kick + beanStats.kick + equipStats.kick,
-    control: baseStats.control + boardStats.control + beanStats.control + equipStats.control,
-    technique: baseStats.technique + boardStats.technique + beanStats.technique + equipStats.technique,
-    agility: baseStats.agility + boardStats.agility + beanStats.agility + equipStats.agility,
-    intelligence: baseStats.intelligence + boardStats.intelligence + beanStats.intelligence + equipStats.intelligence,
-  };
-
-  // フォーカス値の計算
-  const focusAT = Math.floor(finalStats.kick * 0.5) + finalStats.control + finalStats.technique;
-  const focusDF = Math.floor(finalStats.agility * 0.5) + finalStats.intelligence + finalStats.technique;
-
-  // 入力変更ハンドラ
-  const handleInputChange = (type: 'base' | 'board' | 'bean', stat: StatType, val: string) => {
-    const num = parseInt(val) || 0;
-    if (type === 'base') setBaseStats(prev => ({ ...prev, [stat]: num }));
-    if (type === 'board') setBoardStats(prev => ({ ...prev, [stat]: num }));
-    if (type === 'bean') setBeanStats(prev => ({ ...prev, [stat]: num }));
-  };
-
-  // Wiki風デザイン設定
-  const styles = {
-    pageBackground: { backgroundColor: '#f4f5f7', minHeight: '100vh', padding: '20px', fontFamily: '"Meiryo", sans-serif', color: '#333' },
-    mainContainer: { backgroundColor: '#fff', maxWidth: '850px', margin: '0 auto', border: '1px solid #ccc' },
-    header: { padding: '20px', borderBottom: '1px solid #ddd', background: 'linear-gradient(to bottom, #fff, #f9f9f9)' },
-    title: { fontSize: '22px', margin: 0, color: '#333', borderLeft: '6px solid #0056b3', paddingLeft: '12px' },
-    section: { padding: '20px' },
-    h2: { fontSize: '16px', borderLeft: '4px solid #dbebf9', borderBottom: '1px solid #dbebf9', padding: '6px 8px', background: '#f7faff', marginBottom: '15px', color: '#333', fontWeight: 'bold' },
+  // --- 2. 計算ロジック（ここが頭脳！） ---
+  // 基礎値を受け取り、バフを掛けた最終値を返す関数
+  const calculatePower = (baseValue: number) => {
+    if (!baseValue) return 0;
     
-    // フォーカス表示（Wikiの強調ボックス風）
-    focusContainer: { display: 'flex', gap: '20px', marginBottom: '30px' },
-    focusBox: { flex: 1, padding: '15px', border: '1px solid #ffcc00', background: '#fffbe6', borderRadius: '4px' },
-    focusLabel: { fontSize: '12px', fontWeight: 'bold', color: '#666', display: 'block', marginBottom: '5px' },
-    focusValue: { fontSize: '28px', fontWeight: 'bold', color: '#d32f2f' },
-
-    selectGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '30px' },
-    
-    // テーブルスタイル（Wiki風）
-    table: { width: '100%', borderCollapse: 'collapse' as const, fontSize: '13px', marginBottom: '20px' },
-    th: { border: '1px solid #ccc', background: '#eef5ff', padding: '8px', textAlign: 'center' as const, fontWeight: 'bold', color: '#444' },
-    td: { border: '1px solid #ccc', padding: '8px', color: '#333', backgroundColor: '#fff', textAlign: 'center' as const },
-    
-    // 入力欄
-    input: { width: '100%', maxWidth: '60px', padding: '4px', textAlign: 'center' as const, border: '1px solid #ddd', borderRadius: '2px' },
-    totalText: { fontWeight: 'bold', color: '#0056b3', fontSize: '15px' },
-    equipText: { color: '#888', fontSize: '12px' }
+    // 計算式： 基礎値 × (1 + フォーカス%/100) × (1 + 正義%/100)
+    // 小数点は切り捨て (Math.floor)
+    const multiplier = (1 + focusBuff / 100) * (1 + justiceBuff / 100);
+    return Math.floor(baseValue * multiplier);
   };
 
+  // --- 3. 画面の見た目 ---
   return (
-    <div style={styles.pageBackground}>
-      <div style={{ maxWidth: '850px', margin: '0 auto 5px', color: '#666', fontSize: '11px' }}>
-        Home &gt; ツール &gt; 装備シミュレーター
-      </div>
+    <div style={styles.container}>
+      <h1 style={styles.title}>⚡ イナズマ計算ツール ⚡</h1>
 
-      <div style={styles.mainContainer}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>装備構成シミュレーター</h1>
-        </div>
-
-        <div style={styles.section}>
+      {/* ▼▼▼ 追加機能：補正値コントローラー ▼▼▼ */}
+      <div style={styles.controlPanel}>
+        <p style={styles.panelTitle}>⚙️ 補正オプション</p>
+        <div style={styles.inputsRow}>
           
-          <div style={styles.focusContainer}>
-            <div style={styles.focusBox}>
-              <span style={styles.focusLabel}>⚔️ FOCUS AT (攻撃)</span>
-              <span style={styles.focusValue}>{focusAT}</span>
-            </div>
-            <div style={styles.focusBox}>
-              <span style={styles.focusLabel}>🛡️ FOCUS DF (守備)</span>
-              <span style={styles.focusValue}>{focusDF}</span>
+          {/* フォーカスバフ入力 */}
+          <div style={styles.inputGroup}>
+            <label>フォーカスバフ:</label>
+            <div style={styles.inputWrapper}>
+              <input
+                type="number"
+                value={focusBuff}
+                onChange={(e) => setFocusBuff(Number(e.target.value))}
+                style={styles.input}
+              />
+              <span>% UP</span>
             </div>
           </div>
 
-          <h2 style={styles.h2}>装備選択</h2>
-          <div style={styles.selectGrid}>
-            <WikiSelect label="👟 シューズ" options={shoesList} value={selectedShoe} onChange={setSelectedShoe} />
-            <WikiSelect label="📿 ミサンガ" options={misangaList} value={selectedMisanga} onChange={setSelectedMisanga} />
-            <WikiSelect label="🏅 ペンダント" options={pendantList} value={selectedPendant} onChange={setSelectedPendant} />
-            <WikiSelect label="⭐ スペシャル" options={specialList} value={selectedSpecial} onChange={setSelectedSpecial} />
+          {/* 正義補正入力 */}
+          <div style={styles.inputGroup}>
+            <label>正義の鉄槌/補正:</label>
+            <div style={styles.inputWrapper}>
+              <input
+                type="number"
+                value={justiceBuff}
+                onChange={(e) => setJusticeBuff(Number(e.target.value))}
+                style={styles.input}
+              />
+              <span>% UP</span>
+            </div>
           </div>
-
-          <h2 style={styles.h2}>ステータス詳細計算</h2>
-          <p style={{ fontSize: '12px', marginBottom: '10px' }}>※「素」「ボード」「ビーンズ」の値を入力してください。</p>
-          
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={{ width: '15%' }}>ステータス</th>
-                <th style={{ width: '15%' }}>素</th>
-                <th style={{ width: '15%' }}>ボード</th>
-                <th style={{ width: '15%' }}>ビーンズ</th>
-                <th style={{ width: '15%' }}>装備補正</th>
-                <th style={{ width: '15%', background: '#f0f8ff' }}>合計</th>
-              </tr>
-            </thead>
-            <tbody>
-              <InputRow label="キック" statKey="kick" 
-                base={baseStats} board={boardStats} bean={beanStats} equip={equipStats} onChange={handleInputChange} styles={styles} />
-              <InputRow label="コントロール" statKey="control" 
-                base={baseStats} board={boardStats} bean={beanStats} equip={equipStats} onChange={handleInputChange} styles={styles} />
-              <InputRow label="テクニック" statKey="technique" 
-                base={baseStats} board={boardStats} bean={beanStats} equip={equipStats} onChange={handleInputChange} styles={styles} />
-              <InputRow label="アジリティ" statKey="agility" 
-                base={baseStats} board={boardStats} bean={beanStats} equip={equipStats} onChange={handleInputChange} styles={styles} />
-              <InputRow label="インテリジェンス" statKey="intelligence" 
-                base={baseStats} board={boardStats} bean={beanStats} equip={equipStats} onChange={handleInputChange} styles={styles} />
-            </tbody>
-          </table>
 
         </div>
       </div>
+      {/* ▲▲▲ コントローラーここまで ▲▲▲ */}
+
+      {/* データの表示エリア */}
+      {loading ? (
+        <p>データを読み込んでいます...</p>
+      ) : (
+        <div style={styles.grid}>
+          {items.map((item) => (
+            <div key={item.id} style={styles.card}>
+              <h2 style={styles.cardTitle}>{item.name}</h2>
+              <p style={styles.category}>{item.category || "装備/キャラ"}</p>
+              
+              <div style={styles.statBox}>
+                <span style={styles.statLabel}>最終フォーカス</span>
+                <span style={styles.statValue}>
+                  {/* ここで計算関数を使っています */}
+                  {calculatePower(item.focus)}
+                </span>
+                <span style={styles.statSub}>
+                  (基礎値: {item.focus})
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// 部品：Wiki風セレクトボックス
-const WikiSelect = ({ label, options, value, onChange }: any) => {
-  // 名前 + ステータス表示
-  const formatName = (item: Equipment) => {
-    const stats = [];
-    if (item.kick) stats.push(`K+${item.kick}`);
-    if (item.control) stats.push(`C+${item.control}`);
-    if (item.technique) stats.push(`T+${item.technique}`);
-    if (item.agility) stats.push(`A+${item.agility}`);
-    if (item.intelligence) stats.push(`I+${item.intelligence}`);
-    return stats.length > 0 ? `${item.name} (${stats.join(' ')})` : item.name;
-  };
-
-  return (
-    <div style={{ background: '#f9f9f9', border: '1px solid #ddd', padding: '8px' }}>
-      <div style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px', color: '#0056b3' }}>{label}</div>
-      <select 
-        value={value} 
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: '100%', padding: '4px', border: '1px solid #ccc', fontSize: '12px', background: '#fff', color: '#333' }}
-      >
-        <option value="">(装備なし)</option>
-        {options.map((item: Equipment) => (
-          <option key={item.id} value={item.id}>{formatName(item)}</option>
-        ))}
-      </select>
-    </div>
-  );
-};
-
-// 部品：入力行
-const InputRow = ({ label, statKey, base, board, bean, equip, onChange, styles }: any) => {
-  const total = (base[statKey] || 0) + (board[statKey] || 0) + (bean[statKey] || 0) + (equip[statKey] || 0);
-  const equipVal = equip[statKey];
-
-  return (
-    <tr>
-      <th style={styles.th}>{label}</th>
-      <td style={styles.td}>
-        <input type="number" value={base[statKey] || ''} onChange={(e) => onChange('base', statKey, e.target.value)} style={styles.input} placeholder="0" />
-      </td>
-      <td style={styles.td}>
-        <input type="number" value={board[statKey] || ''} onChange={(e) => onChange('board', statKey, e.target.value)} style={styles.input} placeholder="0" />
-      </td>
-      <td style={styles.td}>
-        <input type="number" value={bean[statKey] || ''} onChange={(e) => onChange('bean', statKey, e.target.value)} style={{...styles.input, borderColor: '#ffcc00', background: '#fffff0'}} placeholder="0" />
-      </td>
-      <td style={styles.td}>
-        {equipVal > 0 ? <span style={{ color: '#d32f2f', fontWeight: 'bold' }}>+{equipVal}</span> : <span style={{ color: '#ccc' }}>-</span>}
-      </td>
-      <td style={{ ...styles.td, background: '#f0f8ff' }}>
-        <span style={styles.totalText}>{total}</span>
-      </td>
-    </tr>
-  );
+// --- 簡単なスタイル（CSS） ---
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    maxWidth: "800px",
+    margin: "0 auto",
+    padding: "20px",
+    fontFamily: "sans-serif",
+    color: "#333",
+  },
+  title: {
+    textAlign: "center",
+    color: "#ff8c00",
+    marginBottom: "30px",
+  },
+  // コントローラーのスタイル
+  controlPanel: {
+    backgroundColor: "#f0f4f8",
+    padding: "20px",
+    borderRadius: "12px",
+    marginBottom: "30px",
+    border: "2px solid #dde",
+  },
+  panelTitle: {
+    margin: "0 0 15px 0",
+    fontWeight: "bold",
+    color: "#556",
+  },
+  inputsRow: {
+    display: "flex",
+    gap: "30px",
+    flexWrap: "wrap",
+  },
+  inputGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "5px",
+  },
+  inputWrapper: {
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+  },
+  input: {
+    padding: "8px",
+    fontSize: "16px",
+    width: "80px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    textAlign: "right",
+  },
+  // カードリストのスタイル
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+    gap: "20px",
+  },
+  card: {
+    border: "1px solid #eee",
+    borderRadius: "12px",
+    padding: "15px",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+    backgroundColor: "#fff",
+  },
+  cardTitle: {
+    fontSize: "18px",
+    margin: "0 0 5px 0",
+  },
+  category: {
+    fontSize: "12px",
+    color: "#888",
+    marginBottom: "15px",
+  },
+  statBox: {
+    backgroundColor: "#fffbf0",
+    padding: "10px",
+    borderRadius: "8px",
+    textAlign: "center",
+    border: "1px solid #ffeeba",
+  },
+  statLabel: {
+    display: "block",
+    fontSize: "12px",
+    color: "#888",
+    marginBottom: "5px",
+  },
+  statValue: {
+    display: "block",
+    fontSize: "24px",
+    fontWeight: "bold",
+    color: "#d35400",
+  },
+  statSub: {
+    fontSize: "11px",
+    color: "#aaa",
+  },
 };
