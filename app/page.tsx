@@ -17,7 +17,9 @@ export default function Home() {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>お知らせ</h2>
         <ul className={styles.list}>
-          <li className={styles.listItem}>2026-01-23: ツール名を<strong>「フォーカス計算」</strong>に変更し、機能を追加しました。🆕</li>
+          <li className={styles.listItem}>2026-01-23: <Link href="/submit" className={styles.link}>キャラクター投稿フォーム</Link>を公開しました。🆕</li>
+          <li className={styles.listItem}>2026-01-23: <Link href="/character" className={styles.link}>キャラクター図鑑</Link>を公開しました。🆕</li>
+          <li className={styles.listItem}>2026-01-23: ツール名を<strong>「フォーカス計算」</strong>に変更し、機能を追加しました。</li>
           <li className={styles.listItem}>2026-01-22: サイトを開設しました。</li>
           <li className={styles.listItem}>2026-01-22: <Link href="/calc" className={styles.link}>フォーカス計算ツール</Link>を公開しました。</li>
         </ul>
@@ -37,12 +39,15 @@ export default function Home() {
             </div>
           </Link>
 
-          <div className={`${styles.card} ${styles.cardDisabled}`}>
-            <div className={`${styles.cardHeader} ${styles.cardDisabledHeader}`}>準備中...</div>
+          <Link href="/character" className={styles.card}>
+            <div className={styles.cardHeader}>📚 キャラクター図鑑</div>
             <div className={styles.cardBody}>
-              <p>キャラクター名鑑などのコンテンツを準備中です。</p>
+              <p>
+                全キャラクターの情報を検索・閲覧できます。<br/>
+                <span className={styles.highlightText}>※ポジション・ビルド別フィルタ対応</span>
+              </p>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 

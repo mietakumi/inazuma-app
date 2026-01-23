@@ -1,0 +1,266 @@
+/* Admin page styles */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.title {
+  font-size: 24px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.authSection {
+  background: #f0f8ff;
+  border: 1px solid #b3d9e8;
+  border-radius: 6px;
+  padding: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.authTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #004080;
+}
+
+.authFormGroup {
+  margin-bottom: 12px;
+}
+
+.authLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.authInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.authButton {
+  width: 100%;
+  padding: 10px;
+  background: #004080;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 10px;
+}
+
+.authButton:hover {
+  background: #003060;
+}
+
+.authError {
+  background: #fee;
+  border: 1px solid #f99;
+  border-radius: 4px;
+  padding: 10px;
+  color: #c00;
+  margin-bottom: 15px;
+  font-size: 12px;
+}
+
+.dashboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.statsBox {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.statCard {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: bold;
+  color: #004080;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.submissionTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.submissionTable thead {
+  background: #f0f0f0;
+}
+
+.submissionTable th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.submissionTable td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+}
+
+.submissionTable tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.statusPending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusApproved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statusRejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.approveButton {
+  padding: 6px 12px;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.approveButton:hover:not(:disabled) {
+  background: #218838;
+}
+
+.rejectButton {
+  padding: 6px 12px;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.rejectButton:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logoutButton {
+  padding: 8px 16px;
+  background: #666;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.logoutButton:hover {
+  background: #555;
+}
+
+.loadingMessage {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  padding: 20px;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 30px;
+}
+
+.filterSection {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filterButton {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterButton.active {
+  background: #004080;
+  color: #fff;
+  border-color: #004080;
+}
+
+.filterButton:hover:not(.active) {
+  background: #f0f0f0;
+}

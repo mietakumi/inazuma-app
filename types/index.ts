@@ -45,3 +45,41 @@ export interface CalcResult {
   at: number;
   df: number;
 }
+
+// キャラクター型定義
+export type Position = 'FW' | 'MF' | 'DF' | 'GK';
+export type MainBuild = '正義' | 'ラフ' | 'カウンター' | 'テンション' | 'キズナ' | 'ひっさつ';
+
+export interface Character {
+  id: number;
+  name: string;
+  character_id: number;
+  position: Position;
+  main_build: MainBuild;
+  created_at: string;
+}
+
+// ステータスベンチマーク（アップデート時の最強キャラ情報）
+export interface StatsBenchmark {
+  id: number;
+  position: Position;
+  stat_type: 'kick' | 'control' | 'technique' | 'agility' | 'intelligence';
+  benchmark_type: string;
+  character_id: number;
+  updated_at: string;
+}
+
+// キャラクター投稿
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
+
+export interface CharacterSubmission {
+  id: number;
+  name: string;
+  character_id: number;
+  position: Position;
+  main_build: MainBuild;
+  submitted_by: string;
+  status: SubmissionStatus;
+  created_at: string;
+  updated_at: string;
+}
