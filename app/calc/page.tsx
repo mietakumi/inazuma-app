@@ -2,17 +2,16 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// Supabase設定
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
-export default function Home() {
+export default function CalcPage() {
   const [items, setItems] = useState<any[]>([]);
   const [equips, setEquips] = useState({ shoes: "", misanga: "", pendant: "", special: "" });
 
-  // ステータス入力 (Kick, Control, Technique, Agility, Intelligence)
+  // ステータス入力 (Lv99, Board, Beans)
   const [stats, setStats] = useState({
     kick: { base: 0, board: 0, beans: 0 },
     control: { base: 0, board: 0, beans: 0 },
@@ -43,14 +42,13 @@ export default function Home() {
     const k = getStatTotal("kick", stats.kick);
     const c = getStatTotal("control", stats.control);
     const t = getStatTotal("technique", stats.technique);
-    const a = getStatTotal("agility", stats.agility);      // スピード/瞬発力
-    const i = getStatTotal("intelligence", stats.intelligence); // インテリジェンス
+    const a = getStatTotal("agility", stats.agility);      
+    const i = getStatTotal("intelligence", stats.intelligence); 
 
     const multiplier = (1 + buffs.focus / 100) * (1 + buffs.justice / 100);
 
     // AT: (1/2キック + コントロール + テクニック) × 倍率
     const at = Math.floor( ((k / 2) + c + t) * multiplier );
-
     // DF: (1/2スピード + インテリ + テクニック) × 倍率
     const df = Math.floor( ((a / 2) + i + t) * multiplier );
 
@@ -61,13 +59,12 @@ export default function Home() {
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "10px", fontFamily: "sans-serif", color: "#333" }}>
-      <h1 style={{ textAlign: "center", fontSize: "20px", color: "#ff8c00", margin: "10px 0" }}>⚡ イナズマ計算機 ⚡</h1>
+      <h1 style={{ textAlign: "center", fontSize: "22px", color: "#ff8c00", margin: "10px 0 20px 0" }}>⚡ フォーカス計算 ⚡</h1>
 
-      {/* ▼ 1. ステータス入力 (日本語でわかりやすく！) ▼ */}
+      {/* ステータス入力 */}
       <div style={styles.box}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
           <thead>
-            {/* ここを修正しました！略語なし！ */}
             <tr style={{ borderBottom: "1px solid #ddd", color: "#666" }}>
               <th style={{textAlign:"left", paddingBottom:"5px"}}>項目</th>
               <th style={{paddingBottom:"5px"}}>Lv99実数値</th>
@@ -98,7 +95,6 @@ export default function Home() {
                     />
                   </td>
                 ))}
-                {/* 合計表示 */}
                 {/* @ts-ignore */}
                 <td style={{ textAlign: "center", fontWeight: "bold", color: "#0070f3" }}>
                   {/* @ts-ignore */}
@@ -110,10 +106,8 @@ export default function Home() {
         </table>
       </div>
 
-      {/* ▼ 2. 装備 & バフ ▼ */}
+      {/* 装備 & バフ */}
       <div style={{ ...styles.box, display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "flex-start" }}>
-        
-        {/* 装備選択 */}
         <div style={{ flex: 1, minWidth: "200px" }}>
           <div style={styles.label}>🛡️ 装備選択</div>
           {["shoes", "misanga", "pendant", "special"].map((cat) => (
@@ -131,7 +125,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* バフ入力 */}
         <div style={{ flex: 1, minWidth: "150px", backgroundColor: "#fffbf0", padding: "10px", borderRadius: "5px" }}>
           <div style={styles.label}>⚙️ 補正オプション</div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
@@ -142,7 +135,7 @@ export default function Home() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{fontSize:"12px"}}>正義バフ</span>
+            <span style={{fontSize:"12px"}}>正義の鉄槌</span>
             <div>
               <input type="number" value={buffs.justice} onChange={(e) => setBuffs({ ...buffs, justice: +e.target.value })} style={styles.buffInput} />
               <span style={{fontSize:"12px"}}>%</span>
@@ -151,7 +144,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ▼ 3. 結果表示 ▼ */}
+      {/* 結果表示 */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "10px" }}>
         <div style={{ ...styles.resBox, borderColor: "#ff4d4d", color: "#ff4d4d" }}>
           <div style={{ fontSize: "14px" }}>⚔️ フォーカス AT</div>
@@ -162,7 +155,6 @@ export default function Home() {
           <div style={{ fontSize: "32px", fontWeight: "bold" }}>{df}</div>
         </div>
       </div>
-
     </div>
   );
 }
