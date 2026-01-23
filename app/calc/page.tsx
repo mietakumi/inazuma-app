@@ -142,7 +142,7 @@ export default function Home() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{fontSize:"12px"}}>正義の鉄槌</span>
+            <span style={{fontSize:"12px"}}>正義バフ</span>
             <div>
               <input type="number" value={buffs.justice} onChange={(e) => setBuffs({ ...buffs, justice: +e.target.value })} style={styles.buffInput} />
               <span style={{fontSize:"12px"}}>%</span>
