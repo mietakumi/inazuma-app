@@ -1,0 +1,168 @@
+/* calc page styles */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 10px;
+  font-family: sans-serif;
+  color: #333;
+}
+
+.title {
+  text-align: center;
+  font-size: 22px;
+  color: #ff8c00;
+  margin: 10px 0 20px 0;
+}
+
+.box {
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  margin-bottom: 15px;
+}
+
+.statsBox {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.statsBox thead tr {
+  border-bottom: 1px solid #ddd;
+  color: #666;
+}
+
+.statsBox th {
+  text-align: left;
+  padding-bottom: 5px;
+}
+
+.statsBox td {
+  padding: 6px 2px;
+}
+
+.statsBox td:last-child {
+  text-align: center;
+  font-weight: bold;
+  color: #0070f3;
+}
+
+.miniInput {
+  width: 50px;
+  padding: 6px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.equipmentBuffContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.equipmentSection {
+  flex: 1;
+  min-width: 200px;
+}
+
+.buffSection {
+  flex: 1;
+  min-width: 150px;
+  background-color: #fffbf0;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+
+.select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.buffControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.buffControl:last-child {
+  margin-bottom: 0;
+}
+
+.buffInput {
+  width: 50px;
+  padding: 4px;
+  text-align: right;
+  border: 1px solid #ff8c00;
+  border-radius: 4px;
+  margin-right: 3px;
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.resultBox {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  background-color: #fff;
+}
+
+.resultBoxAt {
+  border-color: #ff4d4d;
+  color: #ff4d4d;
+}
+
+.resultBoxDf {
+  border-color: #0070f3;
+  color: #0070f3;
+}
+
+.resultLabel {
+  font-size: 14px;
+}
+
+.resultValue {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.errorMessage {
+  padding: 10px;
+  background-color: #fee;
+  border: 1px solid #f99;
+  border-radius: 4px;
+  color: #c00;
+  margin-bottom: 15px;
+}
+
+.loadingMessage {
+  padding: 10px;
+  background-color: #e8f4f8;
+  border: 1px solid #b3d9e8;
+  border-radius: 4px;
+  color: #004080;
+  margin-bottom: 15px;
+}
