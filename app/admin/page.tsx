@@ -10,7 +10,7 @@ const supabase = createClient(
 );
 
 // 環境変数からパスキーを取得（公開キーなので、実際には別の認証方法を推奨）
-const ADMIN_PASSKEY = process.env.NEXT_PUBLIC_ADMIN_PASSKEY || "admin123";
+const ADMIN_PASSKEY = process.env.NEXT_PUBLIC_ADMIN_PASSKEY || "";
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
