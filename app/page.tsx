@@ -16,11 +16,10 @@ export default function Home() {
       <div style={styles.section}>
         <h2 style={styles.h2}>お知らせ</h2>
         <ul style={styles.ul}>
-          {/* ▼▼▼ ここを追加しました ▼▼▼ */}
-          <li>2026-01-23: ツール名を<strong>「フォーカス計算」</strong>に変更し、バフ補正機能とステータス詳細入力(Lv99/ボード/ビーンズ)を追加しました。🆕</li>
-          
+          {/* ▼▼▼ リンク先を /calc に合わせました ▼▼▼ */}
+          <li>2026-01-23: ツール名を<strong>「フォーカス計算」</strong>に変更し、機能を追加しました。🆕</li>
           <li>2026-01-22: サイトを開設しました。</li>
-          <li>2026-01-22: <Link href="/focus" style={styles.link}>装備シミュレーター</Link>を公開しました。</li>
+          <li>2026-01-22: <Link href="/calc" style={styles.link}>フォーカス計算ツール</Link>を公開しました。</li>
         </ul>
       </div>
 
@@ -29,8 +28,8 @@ export default function Home() {
         <h2 style={styles.h2}>ツール一覧</h2>
         <div style={styles.grid}>
           
-          {/* ▼▼▼ リンク先と名前を変更しました ▼▼▼ */}
-          <Link href="/focus" style={styles.card}>
+          {/* ▼▼▼ ここも /calc に修正！ ▼▼▼ */}
+          <Link href="/calc" style={styles.card}>
             <div style={styles.cardHeader}>⚡ フォーカス計算</div>
             <div style={styles.cardBody}>
               <p>
@@ -65,12 +64,10 @@ export default function Home() {
 const styles = {
   pageTitle: { fontSize: '24px', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '5px', color: '#333' },
   metaInfo: { fontSize: '10px', color: '#999', textAlign: 'right' as const, marginBottom: '20px' },
-  
   section: { marginBottom: '30px' },
   h2: { fontSize: '16px', background: '#eef5ff', borderLeft: '5px solid #004080', padding: '5px 10px', marginBottom: '10px', color: '#333', fontWeight: 'bold' },
   ul: { fontSize: '13px', lineHeight: '1.8' },
   link: { color: '#004080', textDecoration: 'underline' },
-  
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' },
   card: { border: '1px solid #ccc', textDecoration: 'none', color: '#333', display: 'block', background: '#fff' },
   cardHeader: { background: '#004080', color: '#fff', padding: '5px 10px', fontSize: '13px', fontWeight: 'bold' },
