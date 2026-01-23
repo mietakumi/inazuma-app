@@ -33,7 +33,7 @@ export default function Home() {
       try {
         // 'equipments' というテーブルから全データを取得
         // ※もしテーブル名が違う場合は 'equipments' を書き換えてください
-        const { data, error } = await supabase.from("equipments").select("*");
+        const { data, error } = await supabase.from("equipment").select("*");
 
         if (error) throw error;
         if (data) setItems(data);
