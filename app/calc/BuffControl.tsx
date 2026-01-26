@@ -30,7 +30,7 @@ export function BuffControl({ buffs, onBuffsChange }: BuffControlProps) {
         </div>
       </div>
       <div className={styles.buffControl}>
-        <span style={{ fontSize: "12px" }}>正義の鉄槌</span>
+        <span style={{ fontSize: "12px" }}>正義バフ</span>
         <div>
           <input
             type="number"
