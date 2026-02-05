@@ -12,10 +12,6 @@ const supabase = createClient(
 // 環境変数からパスキーを取得（公開キーなので、実際には別の認証方法を推奨）
 const ADMIN_PASSKEY = process.env.NEXT_PUBLIC_ADMIN_PASSKEY || "";
 
-// デバッグ用（本番では削除すること）
-console.log("ADMIN_PASSKEY:", ADMIN_PASSKEY);
-console.log("ENV:", process.env.NEXT_PUBLIC_ADMIN_PASSKEY);
-
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [passkey, setPasskey] = useState("");
@@ -33,10 +29,6 @@ export default function AdminPage() {
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
     setPasskeyError(null);
-
-    console.log("入力値:", passkey);
-    console.log("期待値:", ADMIN_PASSKEY);
-    console.log("一致？:", passkey === ADMIN_PASSKEY);
 
     if (passkey === ADMIN_PASSKEY) {
       setAuthenticated(true);
