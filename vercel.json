@@ -1,0 +1,7 @@
+{
+  "env": {
+    "NEXT_PUBLIC_ADMIN_PASSKEY": "raten0329",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://fcfbfhyjcegrypxjmbch.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  }
+}
