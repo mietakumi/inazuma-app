@@ -34,6 +34,10 @@ export default function AdminPage() {
     e.preventDefault();
     setPasskeyError(null);
 
+    console.log("入力値:", passkey);
+    console.log("期待値:", ADMIN_PASSKEY);
+    console.log("一致？:", passkey === ADMIN_PASSKEY);
+
     if (passkey === ADMIN_PASSKEY) {
       setAuthenticated(true);
       setPasskey("");
