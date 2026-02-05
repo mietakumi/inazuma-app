@@ -12,6 +12,11 @@ const supabase = createClient(
 // 環境変数からパスキーを取得（公開キーなので、実際には別の認証方法を推奨）
 const ADMIN_PASSKEY = process.env.NEXT_PUBLIC_ADMIN_PASSKEY || "";
 
+// デバッグ用（本番環境で何が読み込まれているか確認）
+console.log("🔍 本番デバッグ - ADMIN_PASSKEY:", ADMIN_PASSKEY);
+console.log("🔍 本番デバッグ - ADMIN_PASSKEY の長さ:", ADMIN_PASSKEY.length);
+console.log("🔍 本番デバッグ - 期待値との一致:", ADMIN_PASSKEY === "raten0329");
+
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [passkey, setPasskey] = useState("");
